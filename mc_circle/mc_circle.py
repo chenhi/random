@@ -5,7 +5,7 @@ import math
 # Can tweak the symbols
 mark = '×'
 empty = '0'
-special = '*'
+special = '•'
 
 # For turning on debug messages
 debug = False
@@ -21,7 +21,6 @@ print("Typically, in Minecraft we center circles on the middle of a block or on 
 # If middle, then (0, 0) corresponds to the center block
 # If corner, then the center is adjacent to (0, 0) and (-1, -1)
 s = input("Type 'x' to middle-center the circle, and 'c' to corner-center it: ")
-corner = False
 if s == 'x':
 	corner = False
 elif s == 'c':
@@ -29,10 +28,16 @@ elif s == 'c':
 else:
 	print("Unexpected choice.  Exiting.")
 	exit()
+
 print("You have chosen to", ("CORNER" if corner else "MIDDLE") + "-center your circle!\n")
 
 # Allow any radius
-r = float(input("Input radius: "))
+if corner:
+	comment = "(suggest half integer, e.g. 7.5)"
+else:
+	comment = "(suggest whole number, e.g. 7)"
+
+r = float(input("Input radius " + comment + ": "))
 
 # Create grid
 n = 2 * math.ceil(r) + 10			#Grid size, with some leeway
