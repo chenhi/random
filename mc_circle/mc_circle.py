@@ -92,7 +92,7 @@ print("\n" + text + "\n")
 
 # Option to write to output
 
-fname = "mc_circle_output.txt"
+fname = "output.txt"
 dowrite = input("Write to " + fname + "? (y/n) ")
 
 if dowrite == "y":
