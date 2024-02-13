@@ -43,7 +43,7 @@ r = float(input("Input radius " + comment + ": "))
 n = 2 * math.ceil(r) + 10			#Grid size, with some leeway
 grid = [[empty for i in range(n)] for j in range(n)]
 
-x, y = 0,0
+
 # Symmetric in quadrants, so only do first quadrant
 if corner:
 	x, y = math.ceil(r-1), 0
