@@ -1,10 +1,24 @@
 from nothanks import NoThanksSession
+import torch
+import torch.nn as nn
 
-num = int(input("How many players? "))
-playernames = [f"Player {i}" for i in range(1, num+1)]
+# Number of players
+num = 3
+playernames = [i for i in range(num)]
+
 session = NoThanksSession(playernames)
 if session.validGame == False:
     exit("Invalid game.")
+
+
+class DQN(nn.Module):
+    def __init__(self, num_states, num_actions):
+        super(DQN, self).__init__
+
+
+
+
+
 
 player = session.curPlayer
 card = session.topCard
@@ -14,7 +28,5 @@ while True:
     if player == None or card == None:
         break
 
-print(session.banks)
-print(session.chips)
-print(session.scoreGame())
-print(session.summarizeGame())
+scores = session.scoreGame()
+print(scores)

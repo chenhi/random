@@ -19,7 +19,8 @@ class NoThanksSession():
             self.topCard = self.deck.pop()
             self.gameOver = False
             self.scores = {}
-        
+            self.history = []                                                       # Tuples: (card, player, action, chips on card before action, player's chips after action, player's bank after action)
+ 
 
     def getRules(self=None):
         rules = "\n==========RULES==========\n"
@@ -54,10 +55,13 @@ class NoThanksSession():
             return None, None
         if response == False and self.chips[self.curPlayer] > 0:
             self.chips[self.curPlayer] -= 1                                     # Take a chip away
+            self.history.append((self.topCard, self.curPlayer, False, self.chipPool, self.chips[self.curPlayer], self.banks[self.curPlayer]))
             self.chipPool += 1                                                  # Move the chip to the pool
         else:
             self.banks[self.curPlayer].append(self.topCard)                     # Give the card to the player
+            self.banks[self.curPlayer].sort()                                   # Sort for convenience
             self.chips[self.curPlayer] += self.chipPool                         # Give the chip pool to the player
+            self.history.append((self.topCard, self.curPlayer, True, self.chipPool, self.chips[self.curPlayer], self.banks[self.curPlayer]))
             self.chipPool = 0                                                   # Empty the chip pool
             if len(self.deck) == 0:
                 self.topCard = None
@@ -73,7 +77,7 @@ class NoThanksSession():
         for i, key in enumerate(self.players):
             score = 0
             score -= self.chips[i]
-            self.banks[i].sort()
+            self.banks[i].sort()                                                # Should already be sorted, but just in case.
             prev = -1
             for n in self.banks[i]:
                 if prev != n - 1:
@@ -81,3 +85,22 @@ class NoThanksSession():
                 prev = n
             self.scores[key] = score
         return self.scores
+    
+    def summarizeGame(self) -> str:
+        text = "==========Game Summary==========\n\n"
+        newCard = True
+        counter = 0
+        for entry in self.history:
+            if newCard:
+                text += f"The card {entry[0]} was flipped.\n"
+                newCard = False
+            if entry[2] == False:
+                counter += 1
+            else:
+                text += f"{counter} players said no thanks to the card before {entry[1]} took it, gaining {entry[3]} chips.\n"
+                text += f"{entry[1]} now has cards {entry[5]} and {entry[4]} chips.\n\n"
+                newCard = True
+                counter = 0
+
+        return text
+    
