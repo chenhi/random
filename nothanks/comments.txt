@@ -1,0 +1,13 @@
+p = number of players = 	3	4	5	6	7
+c = number of total chips =	33	44	55	54	49	
+n = number of cards = 		33	33	33	33	33
+m = number of active cards =	24	24	24	24	24
+
+The most naive state space for No Thanks! is:
+(cpn)^2 <= 128,119,761 <= 130,000,000
+log = 8
+
+The naive game tree complexity is:
+2^(m/p) * 24!
+log = 31
+i.e. the players take 2^m actions, and the number of random seeds is 24!

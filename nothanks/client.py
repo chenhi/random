@@ -7,17 +7,17 @@ from colorama import Fore, init, Back
 
 ###############################################################################################
 
-startChips = {3: 11, 4: 11, 5: 11, 6: 9, 7: 7}
+# startChips = {3: 11, 4: 11, 5: 11, 6: 9, 7: 7}
 
-def getRules(num):
-    rules = "\n==========RULES==========\n"
-    rules += f"The deck consists of 24 integer-valued cards drawn from the range [3, 35].\n"
-    rules += f"There are currently {num} players, each starting with {startChips[num]} chips.\n"
-    rules += f"On your turn, you can either take the card and chips on the table, or reject it by paying one chip if you have one.  The chips you take are playable, the card goes in your bank.\n"
-    rules += f"When the cards are exhausted, the game ends, and you score as follows.\n"
-    rules += f"For each run (consecutive sequence) in your bank, you add the score of the lowest card in the run.  You then subtract the number of chips.\n"
-    rules += f"Lowest score wins.\n\n"
-    return rules
+# def getRules(num):
+#     rules = "\n==========RULES==========\n"
+#     rules += f"The deck consists of 24 integer-valued cards drawn from the range [3, 35].\n"
+#     rules += f"There are currently {num} players, each starting with {startChips[num]} chips.\n"
+#     rules += f"On your turn, you can either take the card and chips on the table, or reject it by paying one chip if you have one.  The chips you take are playable, the card goes in your bank.\n"
+#     rules += f"When the cards are exhausted, the game ends, and you score as follows.\n"
+#     rules += f"For each run (consecutive sequence) in your bank, you add the score of the lowest card in the run.  You then subtract the number of chips.\n"
+#     rules += f"Lowest score wins.\n\n"
+#     return rules
 
 
 ################################################################################################
@@ -52,31 +52,40 @@ print(f"[*] Connecting to {SERVER_HOST}:{SERVER_PORT}...")
 s.connect((SERVER_HOST, SERVER_PORT))
 print("[+] Connected.")
 
+mes = ">"
+sep = "|"
 
+# TODO: What happens when we get two prompts?
+# BUG: host and other join, host names then leaves. join doesn't name.  what hpapens/
 
-# prompt the client for a name
-#name = input("Enter your name: ")
-#to_send = f"name|{name}"
-#s.send(to_send.encode())
+# Process input in separate threads
+def wait_for_input(prompt, parts):
+    res = input(prompt + "\n").replace(mes, "").replace(sep,"")               # Strip response of the special characters
+    res = ("response|" if len(parts) <= 2 else parts[2] + "|") + res
+    s.send(res.encode())
 
-#print("\n\nWelcome to the game 'No Thanks!'.  To quit, type 'quit'.  For the rules, type 'rules'.\n\n")
 
 # How to process messages
 def listen_for_messages():
     while True:
-        message = s.recv(1024).decode()
-        parts = message.split("|")
-        if len(parts) == 0:
-            continue
-        elif parts[0] == "print" and len(parts) > 1:                                                                # Print format: "|print|text to print|ignore"
-            print("\n" + parts[1])
-        elif parts[0] == "prompt":                                                                                  # Prompt format: "|prompt|text of the prompt|heading of reply|ignore"
-            res = input("You have been prompted: " if len(parts) == 1 else parts[1]).replace("|", "")               # Strip response of the special character
-            res = ("response|" if len(parts) <= 2 else parts[2] + "|") + res
-            s.send(res.encode())
+        message = s.recv(1024).decode()             # TODO BUG OK this issue is that messages cna become concatenated in one package
+        messages = message.split(mes)
+        for m in messages:
+            parts = m.split(sep)
+            if parts[0] == "print" and len(parts) > 1:                                                                # Print format: "|print|text to print|ignore"
+                print(parts[1])
+            elif parts[0] == "prompt":                                                                                  # Prompt format: "|prompt|text of the prompt|heading of reply|ignore"
+                p = Thread(target=wait_for_input, args=("You have been prompted: " if len(parts) == 1 else parts[1], parts))
+                p.daemon == True
+                p.start()
+                #res = input("You have been prompted: " if len(parts) == 1 else parts[1]).replace("|", "")               # Strip response of the special character
+                #res = ("response|" if len(parts) <= 2 else parts[2] + "|") + res
+                #s.send(res.encode())
+            elif parts[0] == "disconnect":
+                break
 
 
-
+# TODO there should be two threads -- one for prompts and one for messages -- but how would they know how to divvy it up?
 
 # make a thread that listens for messages and prompts
 t = Thread(target=listen_for_messages)
@@ -84,7 +93,7 @@ t = Thread(target=listen_for_messages)
 t.daemon = True
 # start the thread
 t.start()
-
+t.join()            # Wait for t to finish
 
 yourPlayerNumber = 0
 numPlayers = 4
@@ -92,21 +101,22 @@ yourCards = []
 yourChips = 3
 
 
-while True:
+#while True:
+
     # Player can request things from the server at any time, or quit
-    to_send =  input("\n Waiting for the server or other players... (commands: 'hand', 'rules', 'quit'). ")
+    #to_send =  input("\n Waiting for the server or other players... (commands: 'hand', 'rules', 'quit'). ")
     # a way to exit the program
-    if to_send.lower() == 'quit':
-        break
-    elif to_send.lower() == 'rules':
-        to_send = "query|rules"
-    elif to_send.lower() == 'hand':
-        to_send = "query|hand"
+    #if to_send.lower() == 'quit':
+    #    break
+    #elif to_send.lower() == 'rules':
+    #    to_send = "query|rules"
+    #elif to_send.lower() == 'hand':
+    #    to_send = "query|hand"
     # add the datetime, name & the color of the sender
     #date_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S') 
     #to_send = f"{client_color}[{date_now}] {name}{separator_token}{to_send}{Fore.RESET}"
     # finally, send the message
-    s.send(to_send.encode())
+    #s.send(to_send.encode())
 
 # close the socket
 s.close()
