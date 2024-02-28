@@ -1,3 +1,5 @@
+# checkpw
+
 A small bash script for checking if your password has appeared in any pastes known to haveibeenpwned.com
 
 You should of course not trust it and look at its code before you give it any of your passwords.  What it does is:
